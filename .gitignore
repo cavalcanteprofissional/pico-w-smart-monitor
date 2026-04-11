@@ -1,0 +1,10 @@
+build/
+*.o
+*.a
+*.uf2
+*.bin
+.pio/
+.vscode/
+.idea/
+*.log
+.DS_Store
