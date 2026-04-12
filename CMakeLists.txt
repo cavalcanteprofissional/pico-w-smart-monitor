@@ -20,14 +20,12 @@ add_executable(monitor_sensores_alerta
     src/display/ssd1306.c
     src/display/font.c
     src/sensors/joystick.c
-    src/utils/uart_log.c
 )
 
 target_include_directories(monitor_sensores_alerta PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/display
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sensors
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
 )
 
 target_link_libraries(monitor_sensores_alerta
@@ -38,7 +36,8 @@ target_link_libraries(monitor_sensores_alerta
     hardware_pwm
 )
 
-pico_enable_stdio_usb(monitor_sensores_alerta 0)
-pico_enable_stdio_uart(monitor_sensores_alerta 1)
+# Habilitar stdio USB (CDC) - mais confiável que UART
+pico_enable_stdio_usb(monitor_sensores_alerta 1)
+pico_enable_stdio_uart(monitor_sensores_alerta 0)
 
 pico_add_extra_outputs(monitor_sensores_alerta)

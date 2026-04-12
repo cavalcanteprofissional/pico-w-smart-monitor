@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/i2c.h"
+#include "hardware/gpio.h"
 #include "ssd1306.h"
 #include "joystick.h"
-#include "uart_log.h"
 
 #define BUZZER_GPIO 10
-#define LED_RGB_GPIO 7
 
 #define IO_DELAY_MS 100
 
@@ -16,20 +15,13 @@ static void buzzer_init(void) {
     gpio_init(BUZZER_GPIO);
     gpio_set_dir(BUZZER_GPIO, GPIO_OUT);
     gpio_put(BUZZER_GPIO, 0);
+    printf("[DEBUG] Buzzer inicializado no GPIO%d\n", BUZZER_GPIO);
 }
 
 static void buzzer_beep(uint16_t duration_ms) {
     gpio_put(BUZZER_GPIO, 1);
     sleep_ms(duration_ms);
     gpio_put(BUZZER_GPIO, 0);
-}
-
-static void led_rgb_set(uint8_t r, uint8_t g, uint8_t b) {
-    gpio_init(LED_RGB_GPIO);
-    gpio_set_dir(LED_RGB_GPIO, GPIO_OUT);
-    (void)r;
-    (void)g;
-    (void)b;
 }
 
 static void check_thresholds(uint16_t x, uint16_t y) {
@@ -46,54 +38,62 @@ static void check_thresholds(uint16_t x, uint16_t y) {
 static void update_display(uint16_t x, uint16_t y, uint8_t joy_pressed, uint8_t btn_a, uint8_t btn_b) {
     ssd1306_clear();
     
-    ssd1306_draw_text(0, 0, "Joystick:");
-    ssd1306_draw_number(64, 0, x);
+    ssd1306_draw_text(0, 0, "X:");
+    ssd1306_draw_number(16, 0, x);
     
     ssd1306_draw_text(0, 16, "Y:");
     ssd1306_draw_number(16, 16, y);
     
-    uint8_t y_btn = 32;
     if (joy_pressed) {
-        ssd1306_draw_text(0, y_btn, "SW:PRESSIONADO!");
+        ssd1306_draw_text(0, 32, "SW:PRESS");
     } else {
-        ssd1306_draw_text(0, y_btn, "SW:Solto");
+        ssd1306_draw_text(0, 32, "SW:Livre");
     }
     
     if (btn_a) {
-        ssd1306_draw_text(0, 48, "A:PRESSIONADO");
+        ssd1306_draw_text(0, 48, "A:OK");
     }
     if (btn_b) {
-        ssd1306_draw_text(72, 48, "B:PRESSIONADO");
+        ssd1306_draw_text(40, 48, "B:OK");
     }
     
     ssd1306_update();
 }
 
 int main() {
-    stdio_init_all();
-    uart_log_init();
-    uart_log("=== Monitor de Sensores com Alerta ===");
+    printf("\n=== INICIO DO SISTEMA ===\n");
+    printf("Versao: 1.1 - Debug\n");
     
+    printf("[1] Inicializando stdio USB...\n");
+    stdio_init_all();
+    printf("[OK] stdio USB\n");
+    
+    printf("[2] Inicializando I2C (GPIO2=SDA, GPIO3=SCL)...\n");
     i2c_init(i2c1, 400 * 1000);
     gpio_set_function(2, GPIO_FUNC_I2C);
     gpio_set_function(3, GPIO_FUNC_I2C);
     gpio_pull_up(2);
     gpio_pull_up(3);
+    printf("[OK] I2C\n");
     
+    printf("[3] Inicializando Display OLED...\n");
     ssd1306_init(i2c1);
-    uart_log("Display OLED inicializado");
+    printf("[OK] Display OLED\n");
     
+    printf("[4] Inicializando Joystick...\n");
     joystick_init();
-    uart_log("Joystick inicializado");
+    printf("[OK] Joystick\n");
     
+    printf("[5] Inicializando Buttons...\n");
     buttons_init();
-    uart_log("Botoes inicializados");
+    printf("[OK] Buttons\n");
     
+    printf("[6] Inicializando Buzzer...\n");
     buzzer_init();
-    uart_log("Buzzer inicializado");
+    printf("[OK] Buzzer\n");
     
-    uart_log("Sistema pronto!");
-    uart_log("Iniciando loop principal...");
+    printf("\n=== SISTEMA PRONTO ===\n");
+    printf("Loop principal iniciando...\n\n");
     
     uint8_t btn_a_state = 0;
     uint8_t btn_b_state = 0;
@@ -106,21 +106,20 @@ int main() {
         if (button_a_flag) {
             button_a_flag = 0;
             btn_a_state = !btn_a_state;
-            uart_log("Botao A pressionado!");
+            printf("Botao A: toggle -> %d\n", btn_a_state);
             buzzer_beep(100);
         }
         
         if (button_b_flag) {
             button_b_flag = 0;
             btn_b_state = !btn_b_state;
-            uart_log("Botao B pressionado!");
+            printf("Botao B: toggle -> %d\n", btn_b_state);
             buzzer_beep(150);
         }
         
         check_thresholds(joy_x, joy_y);
         
-        uart_log_int("JoyX", joy_x);
-        uart_log_int("JoyY", joy_y);
+        printf("X:%4d Y:%4d\n", joy_x, joy_y);
         
         update_display(joy_x, joy_y, joy_sw, btn_a_state, btn_b_state);
         
