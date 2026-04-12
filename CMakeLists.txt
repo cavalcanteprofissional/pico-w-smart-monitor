@@ -1,15 +1,12 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Fetch Pico SDK from Git if not available
-if(NOT PICO_SDK_PATH)
-    include(FetchContent)
-    FetchContent_Declare(
-        pico_sdk
-        GIT_REPOSITORY https://github.com/raspberrypi/pico-sdk.git
-        GIT_TAG 1.5.1
-    )
-    FetchContent_MakeAvailable(pico_sdk)
-endif()
+# Usar SDK local instalado
+set(PICO_SDK_PATH "C:/Program Files/Raspberry Pi/Pico SDK v1.5.1/pico-sdk" CACHE PATH "Path to Pico SDK")
+
+# Adicionar arquivo de importação do SDK
+set(PICO_SDK_IMPORT_FILE ${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+
+include(${PICO_SDK_IMPORT_FILE})
 
 project(monitor_sensores_alerta C CXX ASM)
 
@@ -21,6 +18,7 @@ pico_sdk_init()
 add_executable(monitor_sensores_alerta
     src/main.c
     src/display/ssd1306.c
+    src/display/font.c
     src/sensors/joystick.c
     src/utils/uart_log.c
 )

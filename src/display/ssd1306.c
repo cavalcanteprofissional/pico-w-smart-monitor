@@ -1,6 +1,5 @@
 #include "ssd1306.h"
 #include "hardware/i2c.h"
-#include "hardware/pio.h"
 #include <string.h>
 #include "font.h"
 
