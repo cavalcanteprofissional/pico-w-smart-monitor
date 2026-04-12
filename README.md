@@ -172,6 +172,69 @@ Publique no YouTube (não listado) e adicione o link no README.
 
 ---
 
+---
+
+## Verificação e Depuração (usando PuTTY)
+
+Após gravar o firmware, siga estes passos para verificar se tudo está funcionando:
+
+### 1. Encontrar a Porta Serial
+
+1. Conecte a BitDogLab ao computador via USB
+2. Pressione **Windows + X** e clique em **"Gerenciador de Dispositivos"**
+3. Expanda **"Portas (COM e LPT)"**
+4. Anote o número COM exibido (ex: COM3, COM4, etc.)
+
+### 2. Abrir o PuTTY
+
+1. Baixe o PuTTY em: https://www.putty.org/ (ou use o já instalado)
+2. Abra o PuTTY
+3. Na tela inicial:
+   - Selecione **"Serial"** (não SSH)
+   - Em **"Serial line"**, digite a porta encontrada (ex: `COM4`)
+   - Em **"Speed"**, digite `115200`
+4. Clique em **"Open"**
+
+### 3. Verificar a Comunicação
+
+Uma nova janela黑色的’ll open. Se tudo estiver funcionando, você verá:
+
+```
+=== Monitor de Sensores com Alerta ===
+Display OLED inicializado
+Joystick inicializado
+Botoes inicializados
+Buzzer inicializado
+Sistema pronto!
+Iniciando loop principal...
+JoyX: 2048
+JoyY: 2048
+```
+
+Se aparecerem caracteres estranhos ou nada:
+- Verifique a velocidade (deve ser 115200)
+- Verifique a porta COM correta
+
+### 4. Testar Funcionalidades
+
+| Ação | Resultado Esperado no Terminal |
+|------|----------------------------|
+| Mova joystick X | `JoyX: 0` a `JoyX: 4095` |
+| Mova joystick Y | `JoyY: 0` a `JoyY: 4095` |
+| Pressione botão A | `Botao A pressionado!` + beep |
+| Pressione botão B | `Botao B pressionado!` + beep |
+| Joystick ao extremo | Alerta sonoro no buzzer |
+
+### 5. Observar o Display OLED
+
+Ao mesmo tempo que observa o terminal, verifique o display OLED:
+- Linha 1: "Joystick:" + valor X
+- Linha 2: "Y:" + valor Y
+- Linha 3: Estado do botão do joystick
+- Linha 4: "A:PRESSIONADO" ou "B:PRESSIONADO" quando clicado
+
+---
+
 ## Solução de Problemas
 
 | Problema | Solução |
