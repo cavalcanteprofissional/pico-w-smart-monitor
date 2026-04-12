@@ -178,26 +178,37 @@ Publique no YouTube (não listado) e adicione o link no README.
 
 Após gravar o firmware, siga estes passos para verificar se tudo está funcionando:
 
-### 1. Encontrar a Porta Serial
+### 1. Encontrar a Porta Serial (COM)
 
-1. Conecte a BitDogLab ao computador via USB
-2. Pressione **Windows + X** e clique em **"Gerenciador de Dispositivos"**
-3. Expanda **"Portas (COM e LPT)"**
-4. Anote o número COM exibido (ex: COM3, COM4, etc.)
+1. **Conecte a BitDogLab** ao computador via USB-C
+2. **Pressione Windows + X** e clique em **"Gerenciador de Dispositivos"**
+3. Na janela que abrir, expanda **"Portas (COM e LPT)"**
+4. Você verá algo como:
+   - `USB Serial Device (COM1)` - porta de programação
+   - `USB Serial Device (COM3)` - porta UART (para comunicação)
+5. **Anote o número COM** (geralmente é COM1, COM3, COM4, etc.)
+
+> **Nota:** Se aparecerem duas portas, USE a primeira (COM1通常是 a de programação e UART no RP2040).
 
 ### 2. Abrir o PuTTY
 
 1. Baixe o PuTTY em: https://www.putty.org/ (ou use o já instalado)
 2. Abra o PuTTY
-3. Na tela inicial:
-   - Selecione **"Serial"** (não SSH)
-   - Em **"Serial line"**, digite a porta encontrada (ex: `COM4`)
+3. Na tela inicial do PuTTY:
+   - Selecione **"Serial"** (não SSH nem Telnet)
+   - Em **"Serial line"**, digite a porta encontrada (ex: `COM1`)
    - Em **"Speed"**, digite `115200`
 4. Clique em **"Open"**
 
+> **Dica:** Para salvar estas configurações:
+> - Clique em "Session" (à esquerda)
+> - Em "Saved Sessions", digite "Pico"
+> - Clique em "Save"
+> - Na próxima vez, é só selecionar "Pico" e clicar em "Load"
+
 ### 3. Verificar a Comunicação
 
-Uma nova janela黑色的’ll open. Se tudo estiver funcionando, você verá:
+Uma nova janela negra’ll open. Se tudo estiver funcionando, você verá:
 
 ```
 === Monitor de Sensores com Alerta ===
@@ -211,9 +222,16 @@ JoyX: 2048
 JoyY: 2048
 ```
 
-Se aparecerem caracteres estranhos ou nada:
-- Verifique a velocidade (deve ser 115200)
-- Verifique a porta COM correta
+**Se não aparecer nada ou aparecer caracteres estranhos:**
+
+| Sintoma | Causa Provável | Solução |
+|--------|---------------|--------|
+| Nada aparece | Porta COM errada | Use outra porta COM |
+| Caracteres estranhos | Velocidade errada | Mude para 115200 |
+| Sóuma vez | Cabo USB ruim | Use outro cabo |
+| Reiniciar | Não gravou | Copie o .uf2 novamente |
+
+**Teste alternativo:** Mude a velocidade do PuTTY para 9600 e veja se aparece algo (alguns programas usam velocidade diferente).
 
 ### 4. Testar Funcionalidades
 
