@@ -1,5 +1,6 @@
 #include "ssd1306.h"
 #include "hardware/i2c.h"
+#include "pico/stdlib.h"
 #include <string.h>
 #include "font.h"
 
@@ -9,7 +10,9 @@ uint8_t ssd1306_buffer[SSD1306_HEIGHT / 8][SSD1306_WIDTH];
 
 static void ssd1306_command(uint8_t cmd) {
     uint8_t buf[2] = {0x00, cmd};
-    i2c_write_blocking(ssd1306_i2c, SSD1306_I2C_ADDR, buf, 2, false);
+    int result = i2c_write_blocking(ssd1306_i2c, SSD1306_I2C_ADDR, buf, 2, false);
+    sleep_us(10);
+    (void)result;
 }
 
 static void ssd1306_data(uint8_t data) {
@@ -20,29 +23,51 @@ static void ssd1306_data(uint8_t data) {
 void ssd1306_init(i2c_inst_t *i2c) {
     ssd1306_i2c = i2c;
     
-    ssd1306_command(SSD1306_SET_DISP | 0x00);
-    ssd1306_command(SSD1306_SET_MEM_ADDR);
-    ssd1306_command(0x00);
-    ssd1306_command(SSD1306_SET_DISP_START_LINE | 0x00);
-    ssd1306_command(SSD1306_SET_SEG_REMAP | 0x01);
-    ssd1306_command(SSD1306_SET_MUX_RATIO);
-    ssd1306_command(SSD1306_HEIGHT - 1);
-    ssd1306_command(SSD1306_SET_COM_OUT_DIR | 0x08);
-    ssd1306_command(SSD1306_SET_COM_CONFIG);
-    ssd1306_command(0x12);
-    ssd1306_command(SSD1306_SET_DCLK);
+    sleep_ms(100);
+    
+    ssd1306_command(0xAE);
+    sleep_ms(10);
+    
+    ssd1306_command(0xD5);
     ssd1306_command(0x80);
-    ssd1306_command(SSD1306_SET_PRECHARGE);
-    ssd1306_command(0xF1);
-    ssd1306_command(SSD1306_SET_VCOM_DESEL);
-    ssd1306_command(0x30);
-    ssd1306_command(SSD1306_SET_CHARGE_PUMP);
+    
+    ssd1306_command(0xA8);
+    ssd1306_command(0x3F);
+    
+    ssd1306_command(0xD3);
+    ssd1306_command(0x00);
+    
+    ssd1306_command(0x40);
+    
+    ssd1306_command(0x8D);
     ssd1306_command(0x14);
-    ssd1306_command(SSD1306_SET_ENTIRE_ON);
-    ssd1306_command(SSD1306_SET_NORM_INV);
-    ssd1306_command(SSD1306_SET_CONTRAST);
-    ssd1306_command(0xFF);
-    ssd1306_command(SSD1306_SET_DISP | 0x01);
+    
+    ssd1306_command(0xA1);
+    
+    ssd1306_command(0xC8);
+    
+    ssd1306_command(0xDA);
+    ssd1306_command(0x12);
+    
+    ssd1306_command(0x81);
+    ssd1306_command(0xCF);
+    
+    ssd1306_command(0xD9);
+    ssd1306_command(0xF1);
+    
+    ssd1306_command(0xDB);
+    ssd1306_command(0x40);
+    
+    ssd1306_command(0x20);
+    ssd1306_command(0x00);
+    
+    ssd1306_command(0xA4);
+    
+    ssd1306_command(0xA6);
+    
+    ssd1306_command(0xAF);
+    
+    sleep_ms(20);
     
     ssd1306_clear();
     ssd1306_update();
@@ -53,22 +78,22 @@ void ssd1306_clear(void) {
 }
 
 void ssd1306_update(void) {
-    ssd1306_command(SSD1306_SET_COL_ADDR);
+    ssd1306_command(0x21);
     ssd1306_command(0x00);
-    ssd1306_command(SSD1306_WIDTH - 1);
-    ssd1306_command(SSD1306_SET_PAGE_ADDR);
+    ssd1306_command(0x7F);
+    ssd1306_command(0x22);
     ssd1306_command(0x00);
-    ssd1306_command((SSD1306_HEIGHT / 8) - 1);
+    ssd1306_command(0x07);
 
-    for (uint8_t page = 0; page < SSD1306_HEIGHT / 8; page++) {
-        for (uint8_t col = 0; col < SSD1306_WIDTH; col++) {
+    for (uint8_t page = 0; page < 8; page++) {
+        for (uint8_t col = 0; col < 128; col++) {
             ssd1306_data(ssd1306_buffer[page][col]);
         }
     }
 }
 
 void ssd1306_draw_pixel(uint8_t x, uint8_t y, uint8_t color) {
-    if (x >= SSD1306_WIDTH || y >= SSD1306_HEIGHT) return;
+    if (x >= 128 || y >= 64) return;
     
     uint8_t page = y / 8;
     uint8_t bit = y % 8;
@@ -103,7 +128,7 @@ void ssd1306_draw_text(uint8_t x, uint8_t y, const char *str) {
         cursor_x += 6;
         str++;
         
-        if (cursor_x >= SSD1306_WIDTH - 5) break;
+        if (cursor_x >= 123) break;
     }
 }
 
@@ -138,7 +163,7 @@ void ssd1306_draw_number(uint8_t x, uint8_t y, int16_t value) {
 
 void ssd1306_draw_hline(uint8_t x, uint8_t y, uint8_t w) {
     for (uint8_t i = 0; i < w; i++) {
-        if (x + i < SSD1306_WIDTH) {
+        if (x + i < 128) {
             ssd1306_draw_pixel(x + i, y, 1);
         }
     }
@@ -146,7 +171,7 @@ void ssd1306_draw_hline(uint8_t x, uint8_t y, uint8_t w) {
 
 void ssd1306_draw_vline(uint8_t x, uint8_t y, uint8_t h) {
     for (uint8_t i = 0; i < h; i++) {
-        if (y + i < SSD1306_HEIGHT) {
+        if (y + i < 64) {
             ssd1306_draw_pixel(x, y + i, 1);
         }
     }

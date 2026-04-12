@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include "hardware/i2c.h"
 
-#define SSD1306_I2C_ADDR 0x3C
+#define SSD1306_I2C_ADDR 0x3D
 #define SSD1306_WIDTH 128
 #define SSD1306_HEIGHT 64
 
