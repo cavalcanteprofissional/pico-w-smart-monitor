@@ -18,7 +18,6 @@ pico_sdk_init()
 add_executable(monitor_sensores_alerta
     src/main.c
     src/display/ssd1306.c
-    src/display/font.c
     src/sensors/joystick.c
 )
 

@@ -11,11 +11,12 @@
 
 static uint32_t last_alert_time = 0;
 
+static ssd1306_t ssd1306;
+
 static void buzzer_init(void) {
     gpio_init(BUZZER_GPIO);
     gpio_set_dir(BUZZER_GPIO, GPIO_OUT);
     gpio_put(BUZZER_GPIO, 0);
-    printf("[DEBUG] Buzzer inicializado no GPIO%d\n", BUZZER_GPIO);
 }
 
 static void buzzer_beep(uint16_t duration_ms) {
@@ -36,59 +37,65 @@ static void check_thresholds(uint16_t x, uint16_t y) {
 }
 
 static void update_display(uint16_t x, uint16_t y, uint8_t joy_pressed, uint8_t btn_a, uint8_t btn_b) {
-    ssd1306_clear();
+    ssd1306_clear(&ssd1306);
     
-    ssd1306_draw_text(0, 0, "X:");
-    ssd1306_draw_number(16, 0, x);
+    char buf[16];
     
-    ssd1306_draw_text(0, 16, "Y:");
-    ssd1306_draw_number(16, 16, y);
+    ssd1306_draw_string(&ssd1306, 0, 0, 1, "X:");
+    snprintf(buf, sizeof(buf), "%d", x);
+    ssd1306_draw_string(&ssd1306, 16, 0, 1, buf);
+    
+    ssd1306_draw_string(&ssd1306, 0, 10, 1, "Y:");
+    snprintf(buf, sizeof(buf), "%d", y);
+    ssd1306_draw_string(&ssd1306, 16, 10, 1, buf);
     
     if (joy_pressed) {
-        ssd1306_draw_text(0, 32, "SW:PRESS");
+        ssd1306_draw_string(&ssd1306, 0, 20, 1, "SW:PRESS");
     } else {
-        ssd1306_draw_text(0, 32, "SW:Livre");
+        ssd1306_draw_string(&ssd1306, 0, 20, 1, "SW:Livre");
     }
     
     if (btn_a) {
-        ssd1306_draw_text(0, 48, "A:OK");
+        ssd1306_draw_string(&ssd1306, 0, 30, 1, "A:OK");
     }
     if (btn_b) {
-        ssd1306_draw_text(40, 48, "B:OK");
+        ssd1306_draw_string(&ssd1306, 40, 30, 1, "B:OK");
     }
     
-    ssd1306_update();
+    ssd1306_show(&ssd1306);
 }
 
 int main() {
-    printf("\n=== INICIO DO SISTEMA ===\n");
-    printf("Versao: 1.1 - Debug\n");
-    
-    printf("[1] Inicializando stdio USB...\n");
     stdio_init_all();
-    printf("[OK] stdio USB\n");
     
-    printf("[2] Inicializando I2C (GPIO2=SDA, GPIO3=SCL)...\n");
-    i2c_init(i2c1, 400 * 1000);
+    printf("\n=== INICIO DO SISTEMA ===\n");
+    printf("Versao: 1.4 - Biblioteca pico-ssd1306\n");
+    
+    printf("[1] Inicializando I2C (GPIO2=SDA, GPIO3=SCL)...\n");
+    i2c_init(i2c1, 100 * 1000);  // 100 kHz para maior compatibilidade
     gpio_set_function(2, GPIO_FUNC_I2C);
     gpio_set_function(3, GPIO_FUNC_I2C);
     gpio_pull_up(2);
     gpio_pull_up(3);
     printf("[OK] I2C\n");
     
-    printf("[3] Inicializando Display OLED...\n");
-    ssd1306_init(i2c1);
-    printf("[OK] Display OLED\n");
+    printf("[2] Inicializando Display OLED...\n");
+    bool init_ok = ssd1306_init(&ssd1306, 128, 64, 0x3D, i2c1);  // 0x3D ao invés de 0x3C
+    if (init_ok) {
+        printf("[OK] Display OLED\n");
+    } else {
+        printf("[ERRO] Display OLED falhou!\n");
+    }
     
-    printf("[4] Inicializando Joystick...\n");
+    printf("[3] Inicializando Joystick...\n");
     joystick_init();
     printf("[OK] Joystick\n");
     
-    printf("[5] Inicializando Buttons...\n");
+    printf("[4] Inicializando Buttons...\n");
     buttons_init();
     printf("[OK] Buttons\n");
     
-    printf("[6] Inicializando Buzzer...\n");
+    printf("[5] Inicializando Buzzer...\n");
     buzzer_init();
     printf("[OK] Buzzer\n");
     
